@@ -1,17 +1,25 @@
 ---
-import '../styles/global.css';
-import Layout from '../layouts/Layout.astro';
-import { getArtworks } from '../services/api';
-import { useTranslations } from '../i18n/translations';
+import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { getArtworks } from '../../services/api';
+import { useTranslations, languages } from '../../i18n/translations';
 
-// Langue par défaut pour la racine (Français)
-const currentLang = 'fr';
+// 1. Indique à Astro les langues à générer dynamiquement
+export function getStaticPaths() {
+  return Object.keys(languages).map((lang) => ({
+    params: { lang },
+  }));
+}
+
+// 2. Récupère la langue active depuis l'URL
+const { lang } = Astro.params;
+const currentLang = (lang as keyof typeof languages) || 'fr';
 const t = useTranslations(currentLang);
 
 const artworks = await getArtworks();
 ---
 
-<Layout title="Galerie | Portfolio Photographie" lang={currentLang}>
+<Layout title={t('nav.gallery')} lang={currentLang}>
   
   <!-- Hero Section -->
   <section class="max-w-7xl mx-auto px-6 pt-20 pb-12">
@@ -28,11 +36,11 @@ const artworks = await getArtworks();
     </div>
   </section>
 
-  <!-- Grille des Œuvres (5 colonnes) -->
+  <!-- Grille des Œuvres -->
   <section class="max-w-7xl mx-auto px-6 pb-24">
     {artworks.length === 0 ? (
       <div class="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-12 text-center text-zinc-500">
-        <p>Aucune œuvre pour le moment. Connectez-vous au panneau d'administration pour en ajouter.</p>
+        <p>{currentLang === 'en' ? 'No artworks found.' : 'Aucune œuvre pour le moment.'}</p>
       </div>
     ) : (
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -41,25 +49,12 @@ const artworks = await getArtworks();
 
           return (
             <article class="group relative bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-xl hover:shadow-black/20">
-              
-              <!-- Contenu Média -->
               <div class="aspect-[4/3] w-full bg-zinc-100 dark:bg-zinc-950 overflow-hidden relative">
                 {isVideo ? (
-                  <video 
-                    src={item.image_url} 
-                    controls 
-                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  ></video>
+                  <video src={item.image_url} controls class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"></video>
                 ) : (
-                  <img 
-                    src={item.image_url} 
-                    alt={item.title} 
-                    loading="lazy"
-                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                  <img src={item.image_url} alt={item.title} loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 )}
-                
-                <!-- Badge Catégorie -->
                 <div class="absolute top-3 left-3">
                   <span class="bg-black/60 backdrop-blur-md border border-white/10 text-zinc-200 text-xs px-2.5 py-1 rounded-full font-medium tracking-wide">
                     {item.category}
@@ -67,28 +62,18 @@ const artworks = await getArtworks();
                 </div>
               </div>
 
-              <!-- Informations textuelles -->
               <div class="p-5 flex flex-col flex-grow justify-between">
                 <div>
-                  <h2 class="text-base font-semibold text-zinc-900 dark:text-white mb-1.5 group-hover:text-zinc-600 dark:group-hover:text-zinc-200 transition-colors line-clamp-1">
-                    {item.title}
-                  </h2>
+                  <h2 class="text-base font-semibold text-zinc-900 dark:text-white mb-1.5 line-clamp-1">{item.title}</h2>
                   <p class="text-zinc-500 dark:text-zinc-400 text-xs line-clamp-2 font-light leading-relaxed mb-4">
-                    {item.description || "Aucune description détaillée."}
+                    {item.description || (currentLang === 'en' ? 'No description.' : 'Aucune description.')}
                   </p>
                 </div>
                 
                 <div class="pt-3 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-400 font-medium">
-                  <span>
-                    {new Date(item.created_at).toLocaleDateString('fr-FR', { 
-                      day: 'numeric', 
-                      month: 'short', 
-                      year: 'numeric' 
-                    })}
-                  </span>
+                  <span>{new Date(item.created_at).toLocaleDateString(currentLang === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 </div>
               </div>
-
             </article>
           );
         })}
