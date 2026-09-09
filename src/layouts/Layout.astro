@@ -3,6 +3,7 @@ import '../styles/global.css';
 import { useTranslations } from '../i18n/translations';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import { getSiteContent } from '../services/api';
+import SocialIcon from '../components/SocialIcon.astro';
 
 interface Props {
   title?: string;
@@ -67,8 +68,8 @@ const footerContent = await getSiteContent<{ socials: { label: string; url: stri
           <a href={getRelativeLocaleUrl(lang, 'contact')} class="transition hover:text-white">{t('nav.contact')}</a>
         </div>
         <div class="sm:text-right">
-          <div class="mb-5 flex gap-4 text-xs text-zinc-400 sm:justify-end">
-            {footerContent?.socials.map((social) => <a href={social.url} target="_blank" rel="noreferrer" class="transition hover:text-white">{social.label} ↗</a>)}
+          <div class="mb-5 flex gap-3 sm:justify-end">
+            {footerContent?.socials.map((social) => <SocialIcon label={social.label} url={social.url} />)}
           </div>
           <p class="text-xs text-zinc-600">&copy; {new Date().getFullYear()} Studio Visuals<br />{t('footer.rights')}</p>
         </div>
