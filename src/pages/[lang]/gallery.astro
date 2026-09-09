@@ -1,0 +1,26 @@
+---
+import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import PortfolioGrid from '../../components/PortfolioGrid.astro';
+import { getArtworks } from '../../services/api';
+import { useTranslations, languages } from '../../i18n/translations';
+
+export function getStaticPaths() {
+  return Object.keys(languages).map((lang) => ({ params: { lang } }));
+}
+
+const currentLang = (Astro.params.lang as keyof typeof languages) || 'fr';
+const t = useTranslations(currentLang);
+const artworks = await getArtworks();
+---
+
+<Layout title={currentLang === 'en' ? 'Gallery | Studio Visuals' : 'Galerie | Studio Visuals'} lang={currentLang}>
+  <main class="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-16 lg:py-24">
+    <header class="mb-14 max-w-2xl">
+      <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-stone-500">Studio Visuals</p>
+      <h1 class="mt-5 font-serif text-6xl leading-[0.9] text-stone-900 sm:text-8xl">{t('gallery.title')}</h1>
+      <p class="mt-7 max-w-xl text-base leading-8 text-stone-600">{t('gallery.intro')}</p>
+    </header>
+    <PortfolioGrid artworks={artworks} t={t} lang={currentLang} />
+  </main>
+</Layout>

@@ -1,0 +1,53 @@
+---
+import '../../../styles/global.css';
+import Layout from '../../../layouts/Layout.astro';
+import { getArtworks } from '../../../services/api';
+import type { Artwork } from '../../../types/artwork';
+import { languages } from '../../../i18n/translations';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+export async function getStaticPaths() {
+  const artworks = await getArtworks();
+
+  return Object.keys(languages).flatMap((lang) => artworks.map((artwork) => ({
+    params: { lang, id: String(artwork.id) }, props: { artwork },
+  })));
+}
+
+const currentLang = (Astro.params.lang as keyof typeof languages) || 'fr';
+const artwork = Astro.props.artwork as Artwork | undefined;
+const isVideo = artwork?.image_url.match(/\.(mp4|mov|webm)$/i);
+const mediaUrl = artwork?.image_url || '';
+const backUrl = getRelativeLocaleUrl(currentLang, '');
+---
+
+<Layout title={artwork?.title || 'Artwork | Studio Visuals'} lang={currentLang}>
+  {artwork ? (
+    <main class="mx-auto max-w-7xl px-6 py-12 sm:px-10 lg:px-16 lg:py-20">
+      <a href={backUrl} class="mb-12 inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.22em] text-stone-500 transition hover:text-stone-900">
+        <span aria-hidden="true">←</span>{currentLang === 'en' ? 'Back to gallery' : 'Retour à la galerie'}
+      </a>
+      <div class="grid gap-12 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.55fr)] lg:items-end lg:gap-20">
+        <div class="overflow-hidden bg-stone-100 shadow-sm">
+          {isVideo ? (
+            <video src={mediaUrl} controls class="aspect-[4/3] w-full object-cover" />
+          ) : (
+            <img src={mediaUrl} alt={artwork.title} width="1600" height="1200" fetchpriority="high" decoding="async" class="max-h-[72vh] w-full object-contain" />
+          )}
+        </div>
+        <aside>
+          <p class="text-[10px] uppercase tracking-[0.24em] text-stone-500">{artwork.category}</p>
+          <h1 class="mt-5 font-serif text-5xl leading-none text-stone-900 sm:text-6xl">{artwork.title}</h1>
+          <p class="mt-8 text-base leading-8 text-stone-600">{artwork.description || (currentLang === 'en' ? 'A visual story from the studio archive.' : 'Une histoire visuelle issue des archives du studio.')}</p>
+          <dl class="mt-10 border-t border-stone-200 pt-6 text-xs">
+            <div class="flex justify-between border-b border-stone-200 py-3"><dt class="uppercase tracking-[0.16em] text-stone-400">{currentLang === 'en' ? 'Category' : 'Catégorie'}</dt><dd class="text-stone-700">{artwork.category}</dd></div>
+            <div class="flex justify-between py-3"><dt class="uppercase tracking-[0.16em] text-stone-400">{currentLang === 'en' ? 'Date' : 'Date'}</dt><dd class="text-stone-700">{new Date(artwork.created_at).toLocaleDateString(currentLang === 'en' ? 'en-GB' : 'fr-FR')}</dd></div>
+          </dl>
+          <a href={getRelativeLocaleUrl(currentLang, 'contact')} class="mt-10 inline-flex border-b border-stone-900 pb-2 text-[10px] uppercase tracking-[0.2em] text-stone-900 transition-opacity hover:opacity-60">{currentLang === 'en' ? 'Discuss a project' : 'Parler d’un projet'} <span class="ml-5" aria-hidden="true">↗</span></a>
+        </aside>
+      </div>
+    </main>
+  ) : (
+    <main class="mx-auto max-w-3xl px-6 py-32 text-center"><h1 class="font-serif text-4xl text-stone-900">{currentLang === 'en' ? 'Artwork not found' : 'Œuvre introuvable'}</h1><a href={backUrl} class="mt-8 inline-block text-xs uppercase tracking-widest text-stone-500">{currentLang === 'en' ? 'Back to gallery' : 'Retour à la galerie'}</a></main>
+  )}
+</Layout>

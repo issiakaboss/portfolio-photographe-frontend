@@ -1,0 +1,63 @@
+---
+import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { languages } from '../../i18n/translations';
+import { getSiteContent } from '../../services/api';
+
+export function getStaticPaths() {
+  return Object.keys(languages).map((lang) => ({ params: { lang } }));
+}
+
+const currentLang = (Astro.params.lang as keyof typeof languages) || 'fr';
+const contact = await getSiteContent<{
+  title: string; description: string; panel_title: string; panel_description: string;
+  email: string; phone: string; socials: { label: string; url: string }[];
+}>('contact', currentLang);
+const copy = currentLang === 'en'
+  ? { name: 'Your name', email: 'Email address', message: 'Tell us about your project', submit: 'Send inquiry', availability: 'Currently booking projects for 2026.' }
+  : { name: 'Votre nom', email: 'Adresse email', message: 'Parlez-nous de votre projet', submit: 'Envoyer la demande', availability: 'Les projets 2026 sont actuellement ouverts.' };
+---
+
+<Layout title={currentLang === 'en' ? 'Contact | Studio Visuals' : 'Contact | Studio Visuals'} lang={currentLang}>
+  <main class="mx-auto max-w-6xl px-6 py-16 sm:px-10 lg:px-16 lg:py-24">
+    <header class="max-w-2xl">
+      <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-stone-500">Studio Visuals</p>
+      <h1 class="mt-6 font-serif text-6xl leading-[0.9] text-stone-900 sm:text-8xl">{contact?.title}</h1>
+      <p class="mt-8 max-w-xl text-base leading-8 text-stone-600">{contact?.description}</p>
+    </header>
+    <div class="mt-16 grid gap-14 lg:grid-cols-[1.2fr_0.8fr]">
+      <form class="bg-stone-100 p-7 sm:p-10" data-contact-form>
+        <div class="grid gap-6 sm:grid-cols-2">
+          <label class="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">{copy.name}<input name="name" required class="form-input border-0 border-b border-stone-300 bg-transparent px-0 py-3" /></label>
+          <label class="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">{copy.email}<input name="email" type="email" required class="form-input border-0 border-b border-stone-300 bg-transparent px-0 py-3" /></label>
+        </div>
+        <label class="mt-8 block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">{copy.message}<textarea name="message" rows="5" required class="form-input border-0 border-b border-stone-300 bg-transparent px-0 py-3"></textarea></label>
+        <button type="submit" class="mt-8 border-b border-stone-900 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-900 transition-opacity hover:opacity-60">{copy.submit} <span class="ml-6" aria-hidden="true">↗</span></button>
+        <p class="mt-6 text-xs text-stone-500">{copy.availability}</p>
+      </form>
+      <aside class="lg:pt-8">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">{contact?.panel_title}</p>
+        <p class="mt-5 max-w-sm text-sm leading-7 text-stone-600">{contact?.panel_description}</p>
+        <div class="mt-10 space-y-4 border-t border-stone-200 pt-6">
+          {contact?.socials.map((social) => <a href={social.url} target="_blank" rel="noreferrer" class="flex items-center justify-between border-b border-stone-200 pb-3 text-sm text-stone-700 transition hover:text-stone-400"><span>{social.label}</span><span aria-hidden="true">↗</span></a>)}
+          <a href={`mailto:${contact?.email}`} class="block pt-3 text-sm text-stone-700 hover:text-stone-400">{contact?.email}</a>
+          <p class="text-sm text-stone-500">{contact?.phone}</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-contact-form]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const recipient = form.closest('main')?.querySelector('a[href^="mailto:"]')?.getAttribute('href');
+      if (!recipient) return;
+      const subject = encodeURIComponent(`Studio Visuals - ${data.get('name')}`);
+      const body = encodeURIComponent(`${data.get('message')}\n\n${data.get('email')}`);
+      window.location.href = `${recipient}?subject=${subject}&body=${body}`;
+    });
+  });
+</script>
