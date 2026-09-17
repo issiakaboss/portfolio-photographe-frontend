@@ -14,14 +14,14 @@ const contact = await getSiteContent<{
   email: string; phone: string; socials: { label: string; url: string }[];
 }>('contact', currentLang);
 const copy = currentLang === 'en'
-  ? { name: 'Your name', email: 'Email address', message: 'Tell us about your project', submit: 'Send inquiry', availability: 'Currently booking projects for 2026.' }
-  : { name: 'Votre nom', email: 'Adresse email', message: 'Parlez-nous de votre projet', submit: 'Envoyer la demande', availability: 'Les projets 2026 sont actuellement ouverts.' };
+  ? { name: 'Your name', email: 'Email address', request: 'Your request', privateAcquisition: 'Private acquisition', customProject: 'Bespoke project', message: 'Tell us about your request', submit: 'Send inquiry', availability: 'Private acquisitions and bespoke projects are currently welcome.' }
+  : { name: 'Votre nom', email: 'Adresse email', request: 'Votre demande', privateAcquisition: 'Acquisition privée', customProject: 'Projet sur-mesure', message: 'Parlez-nous de votre demande', submit: 'Envoyer la demande', availability: 'Les acquisitions privées et projets sur-mesure sont ouverts.' };
 ---
 
-<Layout title={currentLang === 'en' ? 'Contact | Studio Visuals' : 'Contact | Studio Visuals'} lang={currentLang}>
+<Layout title={currentLang === 'en' ? "Contact | Maison Phid'ou" : "Contact | Maison Phid'ou"} lang={currentLang}>
   <main class="mx-auto max-w-6xl px-6 py-16 sm:px-10 lg:px-16 lg:py-24">
     <header class="max-w-2xl">
-      <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-stone-500">Studio Visuals</p>
+      <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-stone-500">Maison Phid'ou</p>
       <h1 class="mt-6 font-serif text-6xl leading-[0.9] text-stone-900 sm:text-8xl">{contact?.title}</h1>
       <p class="mt-8 max-w-xl text-base leading-8 text-stone-600">{contact?.description}</p>
     </header>
@@ -31,6 +31,13 @@ const copy = currentLang === 'en'
           <label class="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">{copy.name}<input name="name" required class="form-input border-0 border-b border-stone-300 bg-transparent px-0 py-3" /></label>
           <label class="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">{copy.email}<input name="email" type="email" required class="form-input border-0 border-b border-stone-300 bg-transparent px-0 py-3" /></label>
         </div>
+        <label class="mt-8 block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">{copy.request}
+          <select name="request_type" required class="form-input border-0 border-b border-stone-300 bg-transparent px-0 py-3">
+            <option value="">{currentLang === 'en' ? 'Select a request' : 'Choisir une demande'}</option>
+            <option value={copy.privateAcquisition}>{copy.privateAcquisition}</option>
+            <option value={copy.customProject}>{copy.customProject}</option>
+          </select>
+        </label>
         <label class="mt-8 block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">{copy.message}<textarea name="message" rows="5" required class="form-input border-0 border-b border-stone-300 bg-transparent px-0 py-3"></textarea></label>
         <button type="submit" class="mt-8 border-b border-stone-900 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-900 transition-opacity hover:opacity-60">{copy.submit} <span class="ml-6" aria-hidden="true">↗</span></button>
         <p class="mt-6 text-xs text-stone-500">{copy.availability}</p>
@@ -55,8 +62,8 @@ const copy = currentLang === 'en'
       const data = new FormData(form);
       const recipient = form.closest('main')?.querySelector('a[href^="mailto:"]')?.getAttribute('href');
       if (!recipient) return;
-      const subject = encodeURIComponent(`Studio Visuals - ${data.get('name')}`);
-      const body = encodeURIComponent(`${data.get('message')}\n\n${data.get('email')}`);
+      const subject = encodeURIComponent(`Maison Phid'ou - ${data.get('request_type')} - ${data.get('name')}`);
+      const body = encodeURIComponent(`${data.get('message')}\n\n${data.get('request_type')}\n${data.get('email')}`);
       window.location.href = `${recipient}?subject=${subject}&body=${body}`;
     });
   });

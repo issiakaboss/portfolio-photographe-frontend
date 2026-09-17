@@ -18,9 +18,10 @@ const storageUrl = import.meta.env.PUBLIC_STORAGE_URL || '';
     <div class="flex flex-wrap gap-2">
     {[
       ['all', t('portfolio.all')],
-      ['photo', t('portfolio.photos')],
-      ['video', t('portfolio.videos')],
-      ['project', t('portfolio.projects')],
+      ['photos', t('portfolio.photos')],
+      ['crafts', t('portfolio.crafts')],
+      ['paintings', t('portfolio.paintings')],
+      ['projects', t('portfolio.projects')],
     ].map(([value, label], index) => (
       <button
         type="button"
@@ -41,42 +42,44 @@ const storageUrl = import.meta.env.PUBLIC_STORAGE_URL || '';
   ) : (
     <div class="grid grid-cols-1 gap-x-7 gap-y-14 sm:grid-cols-2 lg:grid-cols-3" data-portfolio-grid>
       {artworks.map((item, index) => {
-        // Construction propre de l'URL de l'image/vidéo
         const originalUrl = item.image_url.startsWith('http')
           ? item.image_url
           : item.image_url.startsWith('/')
             ? item.image_url
             : `${storageUrl}/${item.image_url.replace(/^\/+/, '')}`;
         const mediaUrl = item.thumbnail_url || originalUrl;
-
-        const isVideo = originalUrl.match(/\.(mp4|mov|webm)$/i);
-        const type = isVideo ? 'video' : (item.category?.toLowerCase().includes('projet') ? 'project' : 'photo');
+        const priceLabel = item.price !== null
+          ? new Intl.NumberFormat(lang === 'fr' ? 'fr-FR' : 'en-US', { style: 'currency', currency: 'EUR' }).format(Number(item.price))
+          : null;
 
         return (
-          <article data-category={type} class="portfolio-item group flex flex-col overflow-hidden bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-md">
+          <article data-category={item.category} class="portfolio-item group flex flex-col overflow-hidden bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-md">
             <a href={`${getRelativeLocaleUrl(lang, `artwork/${item.id}`)}`} class="relative block aspect-[16/10] overflow-hidden bg-stone-100" aria-label={item.title}>
-              {isVideo ? (
-                <video src={mediaUrl} controls class="h-full w-full object-cover" />
-              ) : (
-                <img
-                  src={mediaUrl}
-                  alt={item.title}
-                  width="960"
-                  height="600"
-                  loading={index < 2 ? 'eager' : 'lazy'}
-                  fetchpriority={index < 2 ? 'high' : 'low'}
-                  decoding="async"
-                  sizes="(min-width: 1024px) 31vw, (min-width: 640px) 46vw, 92vw"
-                  class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
-              )}
+              <img
+                src={mediaUrl}
+                alt={item.title}
+                width="960"
+                height="600"
+                loading={index < 2 ? 'eager' : 'lazy'}
+                fetchpriority={index < 2 ? 'high' : 'low'}
+                decoding="async"
+                sizes="(min-width: 1024px) 31vw, (min-width: 640px) 46vw, 92vw"
+                class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
               <span class="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/15"></span>
+              {item.status === 'sold' ? (
+                <span class="absolute right-4 top-4 bg-white/90 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-700">{t('shop.sold')}</span>
+              ) : item.is_for_sale ? (
+                <span class="absolute right-4 top-4 bg-white/90 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-900">
+                  {t('shop.buy')}{priceLabel ? ` · ${priceLabel}` : ''}
+                </span>
+              ) : null}
               <span class="absolute bottom-4 left-4 text-[10px] uppercase tracking-[0.2em] text-white opacity-0 transition-opacity duration-500 group-hover:opacity-100">Voir le projet</span>
             </a>
             <div class="flex flex-grow flex-col justify-between px-1 pt-5">
               <div>
                 <div class="mb-3 flex items-center justify-between gap-3">
-                  <span class="text-[10px] uppercase tracking-[0.18em] text-stone-500">{item.category || type}</span>
+                  <span class="text-[10px] uppercase tracking-[0.18em] text-stone-500">{t(`portfolio.${item.category}` as any)}</span>
                   <span class="text-[10px] text-stone-400">{new Date(item.created_at).getFullYear()}</span>
                 </div>
                 <h2 class="font-serif text-2xl leading-tight text-stone-900">{item.title}</h2>

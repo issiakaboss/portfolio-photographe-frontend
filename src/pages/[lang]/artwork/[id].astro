@@ -16,38 +16,241 @@ export async function getStaticPaths() {
 
 const currentLang = (Astro.params.lang as keyof typeof languages) || 'fr';
 const artwork = Astro.props.artwork as Artwork | undefined;
-const isVideo = artwork?.image_url.match(/\.(mp4|mov|webm)$/i);
 const mediaUrl = artwork?.image_url || '';
 const backUrl = getRelativeLocaleUrl(currentLang, '');
+const priceLabel = artwork?.price !== null && artwork?.price !== undefined
+  ? new Intl.NumberFormat(currentLang === 'en' ? 'en-US' : 'fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(artwork.price))
+  : null;
 ---
 
-<Layout title={artwork?.title || 'Artwork | Studio Visuals'} lang={currentLang}>
+<Layout title={artwork?.title || "Maison Phid'ou"} lang={currentLang}>
   {artwork ? (
-    <main class="mx-auto max-w-7xl px-6 py-12 sm:px-10 lg:px-16 lg:py-20">
-      <a href={backUrl} class="mb-12 inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.22em] text-stone-500 transition hover:text-stone-900">
+    <main class="mx-auto max-w-7xl px-6 py-8 sm:px-10 lg:px-16 lg:py-12">
+      <!-- Lien retour -->
+      <a href={backUrl} class="mb-8 inline-flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-stone-500 transition hover:text-stone-900">
         <span aria-hidden="true">←</span>{currentLang === 'en' ? 'Back to gallery' : 'Retour à la galerie'}
       </a>
-      <div class="grid gap-12 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.55fr)] lg:items-end lg:gap-20">
-        <div class="overflow-hidden bg-stone-100 shadow-sm">
-          {isVideo ? (
-            <video src={mediaUrl} controls class="aspect-[4/3] w-full object-cover" />
-          ) : (
-            <img src={mediaUrl} alt={artwork.title} width="1600" height="1200" fetchpriority="high" decoding="async" class="max-h-[72vh] w-full object-contain" />
-          )}
+
+      <!-- Grille principale réagencée -->
+      <div class="grid gap-10 lg:grid-cols-12 lg:items-start lg:gap-16">
+        
+        <!-- Image (7 colonnes) -->
+        <div class="lg:col-span-7 lg:sticky lg:top-8">
+          <div class="overflow-hidden bg-stone-100 shadow-sm rounded-sm">
+            <img 
+              src={mediaUrl} 
+              alt={artwork.title} 
+              fetchpriority="high" 
+              decoding="async" 
+              class="max-h-[75vh] w-full object-contain mx-auto" 
+            />
+          </div>
         </div>
-        <aside>
-          <p class="text-[10px] uppercase tracking-[0.24em] text-stone-500">{artwork.category}</p>
-          <h1 class="mt-5 font-serif text-5xl leading-none text-stone-900 sm:text-6xl">{artwork.title}</h1>
-          <p class="mt-8 text-base leading-8 text-stone-600">{artwork.description || (currentLang === 'en' ? 'A visual story from the studio archive.' : 'Une histoire visuelle issue des archives du studio.')}</p>
-          <dl class="mt-10 border-t border-stone-200 pt-6 text-xs">
-            <div class="flex justify-between border-b border-stone-200 py-3"><dt class="uppercase tracking-[0.16em] text-stone-400">{currentLang === 'en' ? 'Category' : 'Catégorie'}</dt><dd class="text-stone-700">{artwork.category}</dd></div>
-            <div class="flex justify-between py-3"><dt class="uppercase tracking-[0.16em] text-stone-400">{currentLang === 'en' ? 'Date' : 'Date'}</dt><dd class="text-stone-700">{new Date(artwork.created_at).toLocaleDateString(currentLang === 'en' ? 'en-GB' : 'fr-FR')}</dd></div>
+
+        <!-- Détails & Checkout (5 colonnes) -->
+        <aside class="lg:col-span-5 flex flex-col justify-start">
+          <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">{artwork.category}</p>
+          
+          <h1 class="mt-3 font-serif text-3xl font-normal leading-tight text-stone-900 sm:text-4xl">{artwork.title}</h1>
+          
+          <div class="mt-6">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-400">{currentLang === 'en' ? 'The story' : 'L’histoire de la pièce'}</p>
+            <p class="mt-2 text-sm leading-relaxed text-stone-600">{artwork.description || (currentLang === 'en' ? 'A visual story from Maison Phid’ou.' : 'Une histoire visuelle de Maison Phid’ou.')}</p>
+          </div>
+
+          <!-- Métadonnées -->
+          <dl class="mt-8 border-t border-stone-200 pt-4 text-xs">
+            <div class="flex justify-between border-b border-stone-100 py-2.5">
+              <dt class="uppercase tracking-[0.14em] text-stone-400">{currentLang === 'en' ? 'Category' : 'Catégorie'}</dt>
+              <dd class="font-medium text-stone-700">{artwork.category}</dd>
+            </div>
+            {artwork.dimensions && (
+              <div class="flex justify-between border-b border-stone-100 py-2.5">
+                <dt class="uppercase tracking-[0.14em] text-stone-400">{currentLang === 'en' ? 'Dimensions' : 'Dimensions'}</dt>
+                <dd class="text-right font-medium text-stone-700">{artwork.dimensions}</dd>
+              </div>
+            )}
+            {artwork.materials && (
+              <div class="flex justify-between border-b border-stone-100 py-2.5">
+                <dt class="uppercase tracking-[0.14em] text-stone-400">{currentLang === 'en' ? 'Materials' : 'Matériaux'}</dt>
+                <dd class="max-w-[60%] text-right font-medium text-stone-700">{artwork.materials}</dd>
+              </div>
+            )}
+            <div class="flex justify-between py-2.5">
+              <dt class="uppercase tracking-[0.14em] text-stone-400">{currentLang === 'en' ? 'Date' : 'Date'}</dt>
+              <dd class="font-medium text-stone-700">{new Date(artwork.created_at).toLocaleDateString(currentLang === 'en' ? 'en-GB' : 'fr-FR')}</dd>
+            </div>
           </dl>
-          <a href={getRelativeLocaleUrl(currentLang, 'contact')} class="mt-10 inline-flex border-b border-stone-900 pb-2 text-[10px] uppercase tracking-[0.2em] text-stone-900 transition-opacity hover:opacity-60">{currentLang === 'en' ? 'Discuss a project' : 'Parler d’un projet'} <span class="ml-5" aria-hidden="true">↗</span></a>
+
+          <!-- Zone Prix & PayPal -->
+          {artwork.status === 'sold' ? (
+            <p class="mt-8 border-t border-stone-200 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">{currentLang === 'en' ? 'Sold' : 'Vendu'}</p>
+          ) : artwork.is_for_sale && priceLabel ? (
+            <div class="mt-8 border-t border-stone-200 pt-4">
+              <div class="flex items-baseline justify-between gap-4">
+                <span class="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-400">{currentLang === 'en' ? 'Price' : 'Prix'}</span>
+                <span class="font-serif text-2xl font-medium text-stone-900">{priceLabel}</span>
+              </div>
+
+              <form id="paypal-customer-form" class="mt-5 space-y-3">
+                <div>
+                  <label for="paypal-customer-name" class="block text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
+                    {currentLang === 'en' ? 'Name' : 'Nom'}
+                  </label>
+                  <input id="paypal-customer-name" name="customer_name" required autocomplete="name" class="mt-1 w-full border-0 border-b border-stone-300 bg-transparent px-0 py-1.5 text-xs focus:border-stone-800 focus:ring-0" />
+                </div>
+                <div>
+                  <label for="paypal-customer-email" class="block text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
+                    {currentLang === 'en' ? 'Email' : 'Email'}
+                  </label>
+                  <input id="paypal-customer-email" name="customer_email" type="email" required autocomplete="email" class="mt-1 w-full border-0 border-b border-stone-300 bg-transparent px-0 py-1.5 text-xs focus:border-stone-800 focus:ring-0" />
+                </div>
+              </form>
+
+              <div
+                id="paypal-button-container"
+                class="mt-5 min-h-10"
+                data-artwork-id={artwork.id}
+                data-amount={Number(artwork.price).toFixed(2)}
+                data-paypal-client-id={import.meta.env.PUBLIC_PAYPAL_CLIENT_ID || ''}
+                data-customer-locale={currentLang}
+              ></div>
+              <p id="paypal-message" class="mt-2 text-xs text-stone-500" aria-live="polite"></p>
+            </div>
+          ) : null}
+
+          <a href={getRelativeLocaleUrl(currentLang, 'contact')} class="mt-8 inline-flex items-center gap-2 border-b border-stone-900 pb-1 text-[10px] uppercase tracking-[0.2em] text-stone-900 transition hover:opacity-60">
+            {currentLang === 'en' ? 'Discuss a project' : 'Parler d’un projet'} 
+            <span aria-hidden="true">↗</span>
+          </a>
         </aside>
+
       </div>
     </main>
   ) : (
-    <main class="mx-auto max-w-3xl px-6 py-32 text-center"><h1 class="font-serif text-4xl text-stone-900">{currentLang === 'en' ? 'Artwork not found' : 'Œuvre introuvable'}</h1><a href={backUrl} class="mt-8 inline-block text-xs uppercase tracking-widest text-stone-500">{currentLang === 'en' ? 'Back to gallery' : 'Retour à la galerie'}</a></main>
+    <main class="mx-auto max-w-3xl px-6 py-32 text-center">
+      <h1 class="font-serif text-4xl text-stone-900">{currentLang === 'en' ? 'Artwork not found' : 'Œuvre introuvable'}</h1>
+      <a href={backUrl} class="mt-8 inline-block text-xs uppercase tracking-widest text-stone-500">{currentLang === 'en' ? 'Back to gallery' : 'Retour à la galerie'}</a>
+    </main>
   )}
 </Layout>
+
+{artwork?.is_for_sale && artwork.status === 'available' && artwork.price !== null && (
+  <script>
+    import { captureOrder } from '../../../services/api';
+
+    type PayPalActions = {
+      order: {
+        create: (options: { purchase_units: { amount: { value: string; currency_code: string } }[]; application_context: { shipping_preference: 'GET_FROM_FILE' } }) => Promise<string>;
+        get: () => Promise<PayPalOrderDetails>;
+      };
+    };
+
+    type PayPalOrderDetails = {
+      payer?: {
+        name?: { given_name?: string; surname?: string };
+        email_address?: string;
+      };
+      purchase_units?: { shipping?: { address?: Record<string, string> } }[];
+    };
+
+    type PayPalButtonOptions = {
+      createOrder: (_data: unknown, actions: PayPalActions) => Promise<string>;
+      onApprove: (_data: { orderID: string }, actions: PayPalActions) => Promise<void>;
+      onError: (error: unknown) => void;
+    };
+
+    type PayPalNamespace = {
+      Buttons: (options: PayPalButtonOptions) => { render: (selector: string) => Promise<void> };
+    };
+
+    const container = document.querySelector<HTMLElement>('#paypal-button-container');
+    const message = document.querySelector<HTMLElement>('#paypal-message');
+    const clientId = container?.dataset.paypalClientId || 'sb';
+    const customerForm = document.querySelector<HTMLFormElement>('#paypal-customer-form');
+    const customerName = document.querySelector<HTMLInputElement>('#paypal-customer-name');
+    const customerEmail = document.querySelector<HTMLInputElement>('#paypal-customer-email');
+    const paypalWindow = window as Window & { paypal?: PayPalNamespace };
+
+    const setMessage = (text: string) => {
+      if (message) message.textContent = text;
+    };
+
+    const loadPayPal = async (): Promise<PayPalNamespace> => {
+      if (paypalWindow.paypal) return paypalWindow.paypal;
+
+      if (!clientId) throw new Error('PayPal client ID is not configured.');
+
+      const existingScript = document.querySelector<HTMLScriptElement>('script[data-paypal-sdk]');
+      if (existingScript) {
+        await new Promise<void>((resolve, reject) => {
+          existingScript.addEventListener('load', () => resolve(), { once: true });
+          existingScript.addEventListener('error', () => reject(new Error('PayPal SDK failed to load.')), { once: true });
+        });
+      } else {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=EUR&components=buttons&intent=capture`;
+          script.async = true;
+          script.dataset.paypalSdk = 'true';
+          script.addEventListener('load', () => resolve(), { once: true });
+          script.addEventListener('error', () => reject(new Error('PayPal SDK failed to load.')), { once: true });
+          document.head.appendChild(script);
+        });
+      }
+
+      if (!paypalWindow.paypal) throw new Error('PayPal SDK is unavailable.');
+      return paypalWindow.paypal;
+    };
+
+    const initialisePayPal = async () => {
+      if (!container) return;
+
+      try {
+        const paypal = await loadPayPal();
+        await paypal.Buttons({
+          createOrder: (_data, actions) => actions.order.create({
+            purchase_units: [{ amount: { value: container.dataset.amount || '0.00', currency_code: 'EUR' } }],
+            application_context: { shipping_preference: 'GET_FROM_FILE' },
+          }),
+          onApprove: async (data, actions) => {
+            setMessage('');
+            if (!customerForm?.reportValidity()) return;
+            const details = await actions.order.get();
+            const shipping = details.purchase_units?.[0]?.shipping?.address;
+            const payer = details.payer;
+
+            if (!shipping?.address_line_1 || !shipping.admin_area_2 || !shipping.postal_code || !shipping.country_code) {
+              throw new Error('A complete shipping address is required.');
+            }
+
+            await captureOrder({
+              artwork_id: Number(container.dataset.artworkId),
+              paypal_order_id: data.orderID,
+              customer_name: customerName?.value.trim() || [payer?.name?.given_name, payer?.name?.surname].filter(Boolean).join(' '),
+              customer_email: customerEmail?.value.trim() || payer?.email_address || '',
+              shipping_address: {
+                address_line_1: shipping.address_line_1,
+                admin_area_2: shipping.admin_area_2,
+                postal_code: shipping.postal_code,
+                country_code: shipping.country_code,
+              },
+            });
+
+            setMessage(container.dataset.customerLocale === 'en' ? 'Payment confirmed.' : 'Paiement confirmé.');
+            container.innerHTML = '';
+          },
+          onError: (error) => {
+            console.error('PayPal error:', error);
+            setMessage(container.dataset.customerLocale === 'en' ? 'Payment could not be completed.' : 'Le paiement n’a pas pu être finalisé.');
+          },
+        }).render('#paypal-button-container');
+      } catch (error) {
+        console.error('PayPal initialisation error:', error);
+        setMessage(container.dataset.customerLocale === 'en' ? 'Online payment is currently unavailable.' : 'Le paiement en ligne est momentanément indisponible.');
+      }
+    };
+
+    initialisePayPal();
+  </script>
+)}

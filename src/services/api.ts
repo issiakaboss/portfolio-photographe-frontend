@@ -9,6 +9,36 @@ export interface Testimonial {
   created_at: string;
 }
 
+export interface ShippingAddress {
+  address_line_1: string;
+  admin_area_2: string;
+  postal_code: string;
+  country_code: string;
+}
+
+export interface CaptureOrderPayload {
+  artwork_id: number;
+  paypal_order_id: string;
+  customer_name: string;
+  customer_email: string;
+  shipping_address: ShippingAddress;
+}
+
+export interface Order {
+  id: number;
+  order_number: string;
+  artwork_id: number;
+  paypal_order_id: string;
+  customer_name: string;
+  customer_email: string;
+  shipping_address: ShippingAddress;
+  amount: string;
+  status: 'pending' | 'paid' | 'failed' | 'shipped';
+  artwork?: Artwork;
+  created_at: string;
+  updated_at: string;
+}
+
 const API_URL = import.meta.env.SSR
   ? (import.meta.env.SERVER_API_URL || 'http://127.0.0.1:8000/api')
   : (import.meta.env.PUBLIC_API_URL || '/api');
@@ -72,6 +102,14 @@ export async function createTestimonial(payload: Pick<Testimonial, 'author' | 'r
     body: JSON.stringify(payload),
   });
   return result;
+}
+
+export async function captureOrder(paypalData: CaptureOrderPayload): Promise<Order> {
+  return fetchJson<Order>(`${API_URL}/orders/capture`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(paypalData),
+  });
 }
 
 export interface SiteContent {

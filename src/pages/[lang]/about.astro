@@ -15,12 +15,12 @@ const profile = await getSiteContent<{
 }>('about', currentLang);
 ---
 
-<Layout title={currentLang === 'en' ? 'About | Studio Visuals' : 'À propos | Studio Visuals'} lang={currentLang}>
+<Layout title={currentLang === 'en' ? "About | Maison Phid'ou" : "À propos | Maison Phid'ou"} lang={currentLang}>
   <main class="mx-auto max-w-6xl px-6 py-16 sm:px-10 lg:px-16 lg:py-24">
     <div class="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
       <figure class="group relative overflow-hidden bg-stone-100">
         <img src={profile?.image_url || ''} alt={currentLang === 'en' ? 'Portrait of the photographer' : 'Portrait du photographe'} width="1000" height="1250" loading="eager" decoding="async" class="aspect-[4/5] w-full object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" />
-        <figcaption class="absolute bottom-5 left-5 text-[10px] uppercase tracking-[0.24em] text-white">Studio Visuals · Paris</figcaption>
+        <figcaption class="absolute bottom-5 left-5 text-[10px] uppercase tracking-[0.24em] text-white">Maison Phid'ou · Paris</figcaption>
       </figure>
       <section>
         <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-stone-500">{profile?.eyebrow}</p>
